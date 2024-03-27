@@ -16,6 +16,10 @@ const Register: React.FC = () => {
     setPassword('');
   };
 
+  const handleSignUpClick = () => {
+     //Add something
+  };
+
   return (
     <Container component="main" maxWidth="xs">
       <Paper elevation={3} style={{ padding: 20, marginTop: 50 }}>
@@ -61,6 +65,9 @@ const Register: React.FC = () => {
           <Button type="submit" variant="contained" color="primary" fullWidth style={{ marginTop: 20 }}>
             Register
           </Button>
+          <Typography variant="body2" align="center" style={{ marginTop: 10, color: 'grey' }}>
+            Already have an account? <Button style={{ textTransform: 'none', color: 'blue' }} onClick={handleSignUpClick}>Log in</Button>
+          </Typography>
         </form>
       </Paper>
     </Container>

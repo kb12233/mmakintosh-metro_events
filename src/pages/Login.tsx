@@ -1,9 +1,11 @@
 import React, { useState, FormEvent } from 'react';
 import { TextField, Button, Typography, Container, Paper, Grid } from '@mui/material';
+import Register from './Register'; // Import your Register component
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [showRegister, setShowRegister] = useState<boolean>(false); // State to control whether to show Register component or not
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
@@ -12,6 +14,10 @@ const Login: React.FC = () => {
     // Reset form fields after submission
     setEmail('');
     setPassword('');
+  };
+
+  const handleSignUpClick = () => {
+    //Add something
   };
 
   return (
@@ -48,6 +54,9 @@ const Login: React.FC = () => {
           <Button type="submit" variant="contained" color="primary" fullWidth style={{ marginTop: 20 }}>
             Login
           </Button>
+          <Typography variant="body2" align="center" style={{ marginTop: 10, color: 'grey'}}>
+            Don't have an account? <Button style={{ textTransform: 'none', color: 'blue' }} onClick={handleSignUpClick}>Sign up</Button>
+          </Typography>
         </form>
       </Paper>
     </Container>
