@@ -13,7 +13,7 @@ const Register: React.FC = () => {
 
     // Insert user into Supabase Database
     const { data, error } = await supabase
-      .from('Users')
+      .from('user')
       .insert([
         {
           username: username,
