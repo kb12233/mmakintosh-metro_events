@@ -1,19 +1,38 @@
 import React, { useState, FormEvent } from 'react';
-import { TextField, Button, Typography, Container, Paper, Grid } from '@mui/material';
+import { TextField, Button, Typography, Container, Paper, Grid, Link } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom'; // Import RouterLink from react-router-dom
+import supabase from '../supabaseClient'; // Adjust the import path based on your project structure
 
 const Register: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    // Add your registration logic here
-    console.log('Username:', username, 'Email:', email, 'Password:', password);
-    // Reset form fields after submission
-    setUsername('');
-    setEmail('');
-    setPassword('');
+
+    // Insert user into Supabase Database
+    const { data, error } = await supabase
+      .from('Users')
+      .insert([
+        {
+          username: username,
+          email: email,
+          password: password, // Note: Storing plain text passwords is highly discouraged
+          user_type: 0, // Default to 'user'
+          created_at: new Date(),
+        },
+      ]);
+
+    if (error) {
+      console.error('Error inserting new user:', error);
+    } else {
+      console.log('User created:', data);
+      // Reset form fields after successful submission
+      setUsername('');
+      setEmail('');
+      setPassword('');
+    }
   };
 
   const handleSignUpClick = () => {
@@ -22,7 +41,7 @@ const Register: React.FC = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-      <Paper elevation={3} style={{ padding: 20, marginTop: 50 }}>
+      <Paper elevation={0} style={{ padding: 20, marginTop: 50 }}>
         <Typography variant="h4" component="h2" gutterBottom style={{ fontWeight: 'bold' }}>
           Register
         </Typography>
@@ -65,9 +84,6 @@ const Register: React.FC = () => {
           <Button type="submit" variant="contained" color="primary" fullWidth style={{ marginTop: 20 }}>
             Register
           </Button>
-          <Typography variant="body2" align="center" style={{ marginTop: 10, color: 'grey' }}>
-            Already have an account? <Button style={{ textTransform: 'none', color: 'blue' }} onClick={handleSignUpClick}>Log in</Button>
-          </Typography>
         </form>
       </Paper>
     </Container>

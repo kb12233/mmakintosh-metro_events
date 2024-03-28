@@ -1,19 +1,31 @@
 import React, { useState, FormEvent } from 'react';
 import { TextField, Button, Typography, Container, Paper, Grid } from '@mui/material';
-import Register from './Register'; // Import your Register component
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [showRegister, setShowRegister] = useState<boolean>(false); // State to control whether to show Register component or not
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    // Add your login logic here, e.g., sending credentials to server for authentication
-    console.log('Email:', email, 'Password:', password);
-    // Reset form fields after submission
-    setEmail('');
-    setPassword('');
+
+    const { data: userData, error } = await supabase
+      .from('user')
+      .select('*')
+      .eq('email', email)
+      .eq('password', password)
+      .single();
+
+    if (error) {
+      alert('Login failed: ' + error.message);
+      return;
+    }
+
+    if (userData) {
+      setUser(userData); // Set global user state
+      navigate('/metro_events'); // Navigate to the main page
+    } else {
+      alert('User not found or incorrect password.');
+    }
   };
 
   const handleSignUpClick = () => {
@@ -22,7 +34,7 @@ const Login: React.FC = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-      <Paper elevation={3} style={{ padding: 20, marginTop: 50 }}>
+      <Paper elevation={0} style={{ padding: 20, marginTop: 50 }}>
         <Typography variant="h5" component="h2" gutterBottom style={{ fontWeight: 'bold' }}>
           Login
         </Typography>
@@ -54,9 +66,6 @@ const Login: React.FC = () => {
           <Button type="submit" variant="contained" color="primary" fullWidth style={{ marginTop: 20 }}>
             Login
           </Button>
-          <Typography variant="body2" align="center" style={{ marginTop: 10, color: 'grey'}}>
-            Don't have an account? <Button style={{ textTransform: 'none', color: 'blue' }} onClick={handleSignUpClick}>Sign up</Button>
-          </Typography>
         </form>
       </Paper>
     </Container>
