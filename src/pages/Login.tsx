@@ -1,9 +1,15 @@
 import React, { useState, FormEvent } from 'react';
-import { TextField, Button, Typography, Container, Paper, Grid } from '@mui/material';
+import { useNavigate } from 'react-router-dom'; // For navigation after login
+import { TextField, Button, Typography, Container, Paper, Grid, Link } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext'; // Adjust the import path as necessary
+import supabase from '../supabaseClient'; // Make sure this points to your Supabase client initialization
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const navigate = useNavigate();
+  const { setUser } = useUser();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -26,10 +32,6 @@ const Login: React.FC = () => {
     } else {
       alert('User not found or incorrect password.');
     }
-  };
-
-  const handleSignUpClick = () => {
-    //Add something
   };
 
   return (
@@ -66,6 +68,13 @@ const Login: React.FC = () => {
           <Button type="submit" variant="contained" color="primary" fullWidth style={{ marginTop: 20 }}>
             Login
           </Button>
+          <Grid container justifyContent="flex-end">
+            <Grid item>
+              <Link component={RouterLink} to="/register" variant="body2" style={{ marginTop: 20 }}>
+                Don't have an account? Sign up!
+              </Link>
+            </Grid>
+          </Grid>
         </form>
       </Paper>
     </Container>
