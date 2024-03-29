@@ -17,11 +17,31 @@ interface Event {
 }
 
 const EventItem = ({ event }: { event: Event }) => {
+  const [organizer, setOrganizer] = useState("");
+
+  //get name of organizer
+  useEffect(() => {
+    const fetchOrganizer = async () => {
+      const { data, error } = await supabase
+        .from('user')
+        .select('username')
+        .eq('user_id', event.organizer_id);
+      
+      if (error) {
+        console.error('Error fetching organizer:', error);
+      } else {
+        setOrganizer(data[0]?.username || "");
+      }
+    };
+
+    fetchOrganizer();
+  }, []);
+
   return (
     <Link to={`/event/${event.event_id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <Card sx={{ margin: 2, padding: 2 }}>
         <Typography variant="h6">{event.title}</Typography>
-        <Typography variant="subtitle1">Organizer ID: {event.organizer_id}</Typography>
+        <Typography variant="subtitle1">Organizer: {organizer}</Typography>
         <Typography>{event.description}</Typography>
         <Typography>Location: {event.location}</Typography>
         <Typography>Date and Time: {new Date(event.date_time).toLocaleString()}</Typography>
