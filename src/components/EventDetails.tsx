@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Typography, CircularProgress, Box, Paper, Grid, Rating, Divider } from '@mui/material';
-import supabase from '../supabaseClient'; // Adjust path as necessary
+import { useParams, Link } from 'react-router-dom';
+import { Typography, CircularProgress, Box, Paper, Grid, Rating, Button } from '@mui/material';
+import supabase from '../supabaseClient';
+import { useUser } from '../contexts/UserContext';
 
 interface Event {
   event_id: string;
@@ -15,44 +16,86 @@ interface Event {
   created_at: Date;
 }
 
+interface EventParticipant {
+  user_id: string;
+  status: number; // Status of join request (0: pending, 1: accepted, 2: rejected)
+}
+
 const EventDetails = () => {
   const { eventId } = useParams<{ eventId: string }>();
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [event, setEvent] = useState<Event | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [joinRequestStatus, setJoinRequestStatus] = useState<number | null>(null);
+  const [joinRequestSent, setJoinRequestSent] = useState(false);
 
   useEffect(() => {
     const fetchEventDetails = async () => {
-      const { data, error } = await supabase
-        .from('event')
-        .select('*')
-        .eq('event_id', eventId)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from<Event>('event')
+          .select('*')
+          .eq('event_id', eventId)
+          .single();
 
-      if (error) {
-        console.error('Error fetching event details:', error);
-      } else {
-        setEvent(data as Event);
+        if (error) {
+          console.error('Error fetching event details:', error);
+          return;
+        }
+        
+        setEvent(data);
+      } catch (error: any) {
+        console.error('Error fetching event details:', error.message);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    const fetchReviews = async () => {
-      const { data, error } = await supabase
-        .from('review')
-        .select('*')
-        .eq('event_id', eventId);
+    const fetchJoinRequestStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from<EventParticipant>('event_participant')
+          .select('status')
+          .eq('event_id', eventId)
+          .eq('user_id', user?.user_id || '');
 
-      if (error) {
-        console.error('Error fetching reviews:', error);
-      } else {
-        setReviews(data || []);
+        if (error) {
+          console.error('Error fetching join request status:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          setJoinRequestStatus(data[0].status);
+        }
+      } catch (error: any) {
+        console.error('Error fetching join request status:', error.message);
       }
     };
 
     fetchEventDetails();
-    fetchReviews();
-  }, [eventId]);
+    if (user) {
+      fetchJoinRequestStatus();
+    }
+  }, [eventId, user]);
+
+  const handleJoinRequest = async () => {
+    try {
+      // Send the join request to the database
+      const { error } = await supabase
+        .from<EventParticipant>('event_participant')
+        .insert([{ event_id: eventId, user_id: user?.user_id, status: 0 }]); // Assuming 0 is the status for pending
+
+      if (error) {
+        throw new Error(`Error sending join request: ${error.message}`);
+      }
+
+      setJoinRequestStatus(0); // Update local state to show that the request is pending
+      setJoinRequestSent(true); // Update local state to indicate that the request has been sent
+    } catch (error: any) {
+      console.error('Error sending join request:', error.message);
+    }
+  };
 
   if (loading) return <CircularProgress />;
 
@@ -72,6 +115,29 @@ const EventDetails = () => {
             <Typography variant="body2"><strong>Date and Time:</strong> {new Date(event.date_time).toLocaleString()}</Typography>
           </Grid>
         </Grid>
+        {(user?.user_type === 1 || user?.user_type === 2) ? ( // Organizer or admin
+          <Link to={`/event-requests/${eventId}`} style={{ textDecoration: 'none' }}>
+            <Button variant="contained" color="primary">
+              View Join Requests
+            </Button>
+          </Link>
+        ) : joinRequestStatus === 1 ? ( // Request accepted
+          <Typography variant="body2" gutterBottom>Your join request has been accepted</Typography>
+        ) : joinRequestStatus === 2 ? ( // Request rejected
+          <div>
+            <Typography variant="body2" gutterBottom>Your join request has been rejected</Typography>
+            <Button variant="contained" color="primary" disabled>
+              Join Event
+            </Button>
+          </div>
+        ) : ( // Regular user
+          <div>
+            <Button variant="contained" color="primary" onClick={handleJoinRequest} disabled={joinRequestSent}>
+              {joinRequestSent ? 'Request Sent' : 'Join Event'}
+            </Button>
+            {joinRequestSent && <Typography variant="body2" gutterBottom>Your join request has been sent</Typography>}
+          </div>
+        )}
       </Paper>
       <Box mt={4}>
         <Typography variant="h5">Reviews</Typography>
