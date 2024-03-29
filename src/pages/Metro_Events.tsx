@@ -1,12 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useUser } from '../contexts/UserContext';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
-import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
-import { IconButton, Container} from '@mui/material';
+import { Container} from '@mui/material';
 import EventMaker from '../components/EventMaker';
 import { AppBarCustom } from '../components/AppBar';
 
