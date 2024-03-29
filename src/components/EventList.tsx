@@ -17,27 +17,13 @@ interface Event {
 
 const EventItem = ({ event }: { event: Event }) => {
     return (
-        <Card>
-          <Typography>
-              {event.title}
-            </Typography>
-            
-            <Typography>
-              {event.organizer_id}
-            </Typography>
-            
-            <Typography>
-              {event.description}
-            </Typography>
-            
-            <Typography>
-              {event.location}
-            </Typography>
-            
-            <Typography>
-              {event.date_time.toString()}
-            </Typography>
-        </Card>
+      <Card sx={{ margin: 2, padding: 2 }}>
+        <Typography variant="h6">{event.title}</Typography>
+        <Typography variant="subtitle1">Organizer ID: {event.organizer_id}</Typography>
+        <Typography>{event.description}</Typography>
+        <Typography>Location: {event.location}</Typography>
+        <Typography>Date and Time: {new Date(event.date_time).toLocaleString()}</Typography>
+      </Card>
     );
 };
 
@@ -52,7 +38,8 @@ const EventList = () => {
     const fetchEvents = async () => {
       const { data, error } = await supabase
         .from('event')
-        .select('*');
+        .select('*')
+        .eq('is_cancelled', false);
       
       if (error) {
         console.error('Error fetching events:', error);

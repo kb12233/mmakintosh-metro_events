@@ -4,6 +4,7 @@ import Typography from '@mui/material/Typography';
 import { Container} from '@mui/material';
 import EventMaker from '../components/EventMaker';
 import { AppBarCustom } from '../components/AppBar';
+import EventList from '../components/EventList';
 
 const MetroEvents: React.FC = () => {
   const { user } = useUser();
@@ -19,6 +20,7 @@ const MetroEvents: React.FC = () => {
       {(user.user_type === 1 || user.user_type === 2) && (
         <EventMaker user={user}/>
       )}
+      <EventList />
       <Container maxWidth="md">
         <Typography variant="h3" gutterBottom>
           Welcome to Metro Events, {user.username}!
