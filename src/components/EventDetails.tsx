@@ -20,6 +20,7 @@ const EventDetails = () => {
   const [loading, setLoading] = useState(true);
   const [event, setEvent] = useState<Event | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [organizer, setOrganizer] = useState("");
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -54,6 +55,25 @@ const EventDetails = () => {
     fetchReviews();
   }, [eventId]);
 
+  useEffect(() => {
+    const fetchOrganizer = async () => {
+      if (event) {
+        const { data, error } = await supabase
+          .from('user')
+          .select('username')
+          .eq('user_id', event.organizer_id);
+        
+        if (error) {
+          console.error('Error fetching organizer:', error);
+        } else {
+          setOrganizer(data[0]?.username || "");
+        }
+      }
+    };
+
+    fetchOrganizer();
+  }, [event]);
+
   if (loading) return <CircularProgress />;
 
   if (!event) return <Typography variant="h5">Event not found</Typography>;
@@ -62,15 +82,14 @@ const EventDetails = () => {
     <Box mt={4}>
       <Paper elevation={3} sx={{ padding: 2 }}>
         <Typography variant="h4" gutterBottom>{event.title}</Typography>
-        <Typography variant="subtitle1" gutterBottom>Organizer ID: {event.organizer_id}</Typography>
+        <Typography variant="subtitle1" gutterBottom>Organizer: {organizer}</Typography>
         <Typography variant="body1" gutterBottom>{event.description}</Typography>
         <Grid container spacing={1}>
           <Grid item xs={6}>
             <Typography variant="body2"><strong>Location:</strong> {event.location}</Typography>
-          </Grid>
-          <Grid item xs={6}>
             <Typography variant="body2"><strong>Date and Time:</strong> {new Date(event.date_time).toLocaleString()}</Typography>
           </Grid>
+          
         </Grid>
       </Paper>
       <Box mt={4}>
