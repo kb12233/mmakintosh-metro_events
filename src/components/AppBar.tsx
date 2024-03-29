@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { AppBar, Button, IconButton, Toolbar, Typography } from "@mui/material";
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import ApplyForOrganizerButton from './ApplyForOrganizerButton';
+import OrganizerRequestsButton from './OrganizerRequestsButton';
 
 export const AppBarCustom = (props: any) => {
   const navigate = useNavigate(); 
@@ -19,8 +21,8 @@ export const AppBarCustom = (props: any) => {
         <IconButton sx={{ color: '#ffffff' }}>
           <NotificationsRoundedIcon />
         </IconButton>
-        {props.user.user_type === 2 && <Button color="inherit">Organizer Requests</Button>}
-        {props.user.user_type === 0 && <Button color="inherit">Apply as Organizer</Button>}
+        {props.user.user_type === 2 && <OrganizerRequestsButton user={props.user} />}
+        {props.user.user_type === 0 && <ApplyForOrganizerButton user={props.user} />}
         <IconButton sx={{ color: '#ffffff' }} onClick={handleLogout}>
           <LogoutRoundedIcon />
         </IconButton>
