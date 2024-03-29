@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { IconButton, Container} from '@mui/material';
-import EventMaker from '../Components/EventMaker ';
+import EventMaker from '../components/EventMaker';
 
 const MetroEvents: React.FC = () => {
   const { user } = useUser();
