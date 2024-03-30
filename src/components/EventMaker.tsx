@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, Button, Grid, Paper, Box, Stack } from '@mui/material';
+import { TextField, Button, Grid, Paper, Box, Stack, Card } from '@mui/material';
 import supabase from '../supabaseClient';
 
 const EventMaker = (props: any) => {
@@ -48,7 +48,7 @@ const EventMaker = (props: any) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Paper elevation={3} sx={{ padding: '2rem', marginBottom: '2rem' }}>
+      <Card variant='outlined' sx={{ padding: '2rem', marginBottom: '2rem', marginTop: '1rem' }}>
         <TextField
           label="Title"
           fullWidth
@@ -106,7 +106,7 @@ const EventMaker = (props: any) => {
             </Grid>
           </>
         )}
-      </Paper>
+      </Card>
     </form>
   );
 };
