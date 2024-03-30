@@ -9,6 +9,7 @@ import { UserProvider } from './contexts/UserContext'; // Adjust the import path
 import OrganizerRequestsPage from './components/OrganizerRequestsPage';
 import EventDetails from './components/EventDetails'; // Import the EventDetails component
 import EventRequestsPage from './components/EventRequestsPage';
+import AllJoinRequestsPage from './components/AllJoinRequestsPage';
 
 const App: React.FC = () => {
   return (
@@ -23,7 +24,7 @@ const App: React.FC = () => {
             <Route path="/organizer_requests" element={<OrganizerRequestsPage />} />
             <Route path="/event/:eventId" element={<EventDetails />} /> {/* Route for EventDetails */}
             <Route path="/event-requests/:eventId" element={<EventRequestsPage />} />
-            {/* Add more routes as needed */}
+            <Route path="/all-join-requests" element={<AllJoinRequestsPage />} />
           </Routes>
         </UserProvider>
       </Router>
