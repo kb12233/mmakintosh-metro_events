@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Typography,
   CircularProgress,
@@ -32,6 +32,7 @@ interface Event {
 }
 
 const EventDetails = () => {
+  const navigate = useNavigate();
   const { user } = useUser();
   const { eventId } = useParams<{ eventId: string }>();
   const [loading, setLoading] = useState(true);
@@ -46,6 +47,10 @@ const EventDetails = () => {
   const [reviewSubmitted, setReviewSubmitted] = useState(false); // New state variable
   
   const [is_editing, setIsEditing] = useState(false);
+  const [is_cancelling, setIsCancelling] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+
+
   const [organizerId, setOrganizerID] = useState("");
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -260,6 +265,36 @@ const EventDetails = () => {
     }
   }
 
+  const handleChangeToCancelMode = () => {
+    setIsCancelling(true);
+  }
+
+  const handleAbortCancel = () => {
+    setIsCancelling(false);
+  }
+
+  const handleCancelEvent = async (e: any) => {
+    e.preventDefault();
+
+    const { data, error } = await supabase
+      .from('event')
+      .update({
+        is_cancelled: true,
+        cancel_reason: cancelReason
+      })
+      .eq("event_id", eventId ) // replace 'your_event_id' with the actual event_id
+
+
+    if (error) {
+      alert('Error cancelling event: ' + error.message);
+    } else {
+      alert('Event cancelled successfully!');
+      // Reset form or further actions
+      setIsCancelling(false);
+      navigate('/metro_events');
+    }
+  }
+
   if (loading) return <CircularProgress />;
 
   if (!event) return <Typography variant="h5">Event not found</Typography>;
@@ -323,41 +358,86 @@ const EventDetails = () => {
                   </Stack>
                 </form>
               </CardContent>
-            :
+            : is_cancelling && (user?.user_id == organizerId || user?.user_type == 2) ?
               <CardContent>
-                <Typography variant="h4" gutterBottom>{title}</Typography>
-                <Typography variant="subtitle1" gutterBottom>Organizer: {organizerUsername}</Typography>
-                <Typography variant="body1" gutterBottom>{description}</Typography>
-                <Grid container spacing={1}>
-                  <Grid item xs={6}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <LocationOn sx={{ color: 'grey' }} />
-                    <Typography variant="body2"><strong>Location:</strong> {location}</Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Event sx={{ color: 'grey' }} />
-                    <Typography variant="body2"><strong>Date and Time:</strong> {new Date(dateTime).toLocaleString()}</Typography>
-                  </Stack>
-                    
-                    
-                  </Grid>
-                </Grid>
-                {
-                  // Render edit button if user is the organizer or an admin
-                  (user?.user_type == 2 || user?.user_id === organizerId) ?
+                <form onSubmit={handleCancelEvent}>
+                  <TextField
+                    sx={{ marginBottom: 1 }}
+                    label="Cancel Reason"
+                    fullWidth
+                    defaultValue={''}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                  />
+                  <Stack direction="row" spacing={1}>
+                    <Button 
+                      variant="text"
+                      onClick={handleAbortCancel}
+                    >
+                      Abort
+                    </Button>
                     <Button 
                       type="submit" 
                       variant="contained"
-                      onClick={handleChangeToEditMode}
+                      color="error"
                     >
-                      Edit
+                      Cancel Event
                     </Button>
-                    
-                    // Add the other buttons later (e.g. cancel event and view join requests)
-                  :
-                    null // We will put join event button here
-                }
+                  </Stack>
+                </form>
               </CardContent>
+
+            :
+              <CardContent>
+              <Typography variant="h4" gutterBottom>{title}</Typography>
+              <Typography variant="subtitle1" gutterBottom>Organizer: {organizerUsername}</Typography>
+              <Typography variant="body1" gutterBottom>{description}</Typography>
+              <Grid container spacing={1}>
+                <Grid item xs={6}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <LocationOn sx={{ color: 'grey' }} />
+                  <Typography variant="body2"><strong>Location:</strong> {location}</Typography>
+                </Stack>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Event sx={{ color: 'grey' }} />
+                  <Typography variant="body2"><strong>Date and Time:</strong> {new Date(dateTime).toLocaleString()}</Typography>
+                </Stack>
+                  
+                  
+                </Grid>
+              </Grid>
+              {
+                // Render edit button if user is the organizer or an admin
+                (user?.user_type == 2 || user?.user_id === organizerId) ?
+                  <>
+                    <Stack direction="row" spacing={1} sx={{marginTop: 2}}>
+                      <Button 
+                        sx={{width: 85}}
+                        type="submit" 
+                        variant="contained"
+                        onClick={handleChangeToEditMode}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        sx={{width: 85}}
+                        variant="contained"
+                        color="error"
+                        onClick={handleChangeToCancelMode}
+                      >
+                        Cancel
+                      </Button>
+                      <Link to={`/event-requests/${eventId}`} style={{ textDecoration: 'none' }}>
+                        <Button variant="outlined" color="primary">
+                          View Join Requests
+                        </Button>
+                      </Link>
+                    </Stack>
+                  </>
+                  // Add the other buttons later (e.g. cancel event and view join requests)
+                :
+                  null // We will put join event button here
+              }
+            </CardContent>
           }
         </Card>
         <Box mt={4}>
