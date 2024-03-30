@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, Typography, Button } from '@mui/material';
+import { Card, CardContent, Typography, Button, Stack } from '@mui/material';
 
 interface AllJoinRequestCardProps {
   request: {
@@ -14,13 +14,15 @@ interface AllJoinRequestCardProps {
 
 const AllJoinRequestCard: React.FC<AllJoinRequestCardProps> = ({ request, onAccept, onReject }) => {
   return (
-    <Card>
+    <Card variant='outlined' sx={{ marginBottom: 1 }}>
       <CardContent>
         <Typography variant="h5">{request.username}</Typography>
         <Typography variant="body2">Requested At: {new Date(request.requested_at).toLocaleString()}</Typography>
         <Typography variant="body2">Event Title: {request.event_title}</Typography>
-        <Button onClick={onAccept}>Accept</Button>
-        <Button onClick={onReject}>Reject</Button>
+        <Stack direction='row' spacing={1} sx={{ marginTop: 1 }}>
+          <Button variant='outlined' color='success' onClick={onAccept}>Accept</Button>
+          <Button variant='outlined' color='error' onClick={onReject}>Reject</Button>
+        </Stack>
       </CardContent>
     </Card>
   );

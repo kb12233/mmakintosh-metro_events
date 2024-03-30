@@ -54,7 +54,7 @@ const EventItem = ({ event }: { event: Event }) => {
   );
 };
 
-const EventList = () => {
+const EventListOwned = (props: any) => {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<Event[]>([]);
 
@@ -63,7 +63,10 @@ const EventList = () => {
       const { data, error } = await supabase
         .from('event')
         .select('*')
-        .eq('is_cancelled', false);
+        .eq('is_cancelled', false)
+        .eq('organizer_id', props.user.user_id);
+
+        console.log(props.haha + props.ibapa)
       
       if (error) {
         console.error('Error fetching events:', error);
@@ -100,4 +103,4 @@ const EventList = () => {
   );
 };
 
-export default EventList;
+export default EventListOwned;
