@@ -4,6 +4,7 @@ import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import ApplyForOrganizerButton from './ApplyForOrganizerButton';
 import OrganizerRequestsButton from './OrganizerRequestsButton';
+import AllJoinRequestsButton from './AllJoinRequestsButton';
 
 export const AppBarCustom = (props: any) => {
   const navigate = useNavigate(); 
@@ -23,6 +24,7 @@ export const AppBarCustom = (props: any) => {
         </IconButton>
         {props.user.user_type === 2 && <OrganizerRequestsButton user={props.user} />}
         {props.user.user_type === 0 && <ApplyForOrganizerButton user={props.user} />}
+        {props.user.user_type === 2 && <AllJoinRequestsButton />}
         <IconButton sx={{ color: '#ffffff' }} onClick={handleLogout}>
           <LogoutRoundedIcon />
         </IconButton>
