@@ -12,7 +12,7 @@ const OrganizerRequestsButton = (props: any) => {
   };
 
   if (props.user && props.user.user_type === 2) {
-    return <Button variant="contained" onClick={handleClick}>View Organizer Requests</Button>;
+    return <Button variant="contained" onClick={handleClick} disableElevation>View Organizer Requests</Button>;
   }
 
   return null;

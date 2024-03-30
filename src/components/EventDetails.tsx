@@ -50,12 +50,14 @@ const EventDetails = () => {
   const [is_cancelling, setIsCancelling] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
 
-
   const [organizerId, setOrganizerID] = useState("");
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [dateTime, setDateTime] = useState('');
+
+  const [joinRequestStatus, setJoinRequestStatus] = useState(0);
+  const [joinRequestSent, setJoinRequestSent] = useState(false);
 
   useEffect(() => {
     // Fetch event details
@@ -72,6 +74,28 @@ const EventDetails = () => {
         setEvent(data as Event);
       }
       setLoading(false);
+    };
+
+    const fetchJoinRequestStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('event_participant')
+          .select('status')
+          .eq('event_id', eventId)
+          .eq('user_id', user?.user_id || '');
+
+        if (error) {
+          console.error('Error fetching join request status:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          setJoinRequestStatus(data[0].status);
+          setJoinRequestSent(true);
+        }
+      } catch (error: any) {
+        console.error('Error fetching join request status:', error.message);
+      }
     };
 
     // Fetch user status for the event
@@ -125,6 +149,9 @@ const EventDetails = () => {
 
     fetchEventDetails();
     fetchUserStatus();
+    if (user) {
+      fetchJoinRequestStatus();
+    }
     fetchReviews();
   }, [eventId, user]);
 
@@ -174,6 +201,24 @@ const EventDetails = () => {
 
     fetchUserReview();
   }, [eventId, user]);
+
+  const handleJoinRequest = async () => {
+    try {
+      // Send the join request to the database
+      const { error } = await supabase
+        .from('event_participant')
+        .insert([{ event_id: eventId, user_id: user?.user_id, status: 0 }]); // Assuming 0 is the status for pending
+
+      if (error) {
+        throw new Error(`Error sending join request: ${error.message}`);
+      }
+
+      setJoinRequestStatus(0); // Update local state to show that the request is pending
+      setJoinRequestSent(true); // Update local state to indicate that the request has been sent
+    } catch (error: any) {
+      console.error('Error sending join request:', error.message);
+    }
+  };
 
   const handleReviewSubmit = async () => {
     try {
@@ -435,7 +480,26 @@ const EventDetails = () => {
                   </>
                   // Add the other buttons later (e.g. cancel event and view join requests)
                 :
-                  null // We will put join event button here
+                  (
+                    joinRequestStatus === 1 ? ( // Request accepted
+                      <Typography variant="body2" gutterBottom>Your join request has been accepted</Typography>
+                    ) : joinRequestStatus === 2 ? ( // Request rejected
+                      <div>
+                        <Typography variant="body2" gutterBottom>Your join request has been rejected</Typography>
+                        <Button variant="contained" color="primary" disabled sx={{ marginTop: 1 }}>
+                          Join Event
+                        </Button>
+                      </div>
+                    ) : ( // Regular user
+                      <div>
+                        <Button variant="contained" color="primary" onClick={handleJoinRequest} disabled={joinRequestSent} sx={{ marginTop: 1 }}>
+                          {joinRequestSent ? 'Request Sent' : 'Join Event'}
+                        </Button>
+                        {joinRequestSent && <Typography variant="body2" gutterBottom>Your join request has been sent</Typography>}
+                      </div>
+                    )
+                  )
+                  
               }
             </CardContent>
           }

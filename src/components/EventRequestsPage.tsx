@@ -58,7 +58,7 @@ const EventRequestsPage: React.FC = () => {
           setOrganizerId(eventData?.organizer_id || null);
 
           // If user is organizer and their ID matches the organizer ID of the event
-          if (user.user_type === 1 && user.user_id === eventData?.organizer_id) {
+          if ((user.user_type === 1 && user.user_id === eventData?.organizer_id) || user.user_type === 2) {
             const { data: requestsData, error: requestError } = await supabase
               .from('event_participant')
               .select('user_id, requested_at')
