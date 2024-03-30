@@ -73,7 +73,14 @@ const EventList = () => {
       setLoading(false);
     };
 
+    // Fetch events initially
     fetchEvents();
+
+    // Fetch events every 10 seconds
+    const interval = setInterval(fetchEvents, 10000);
+
+    // Clear interval on component unmount
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) return <CircularProgress />;
