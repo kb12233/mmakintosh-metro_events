@@ -1,8 +1,8 @@
-// EventList.tsx
 import React, { useEffect, useState } from 'react';
 import { List, ListItem, ListItemText, CircularProgress, Card, Stack, Typography } from '@mui/material';
 import supabase from '../supabaseClient'; // Adjust path as necessary
 import { Link } from 'react-router-dom';
+import { LocationOn, Event } from '@mui/icons-material'; // Import icons for Location and Date and Time
 
 interface Event {
   event_id: string;
@@ -41,8 +41,14 @@ const EventItem = ({ event }: { event: Event }) => {
     <Link to={`/event/${event.event_id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <Card sx={{ margin: 0.5, padding: 2 }} variant='outlined'>
         <Typography variant="h6"><strong>{event.title}</strong></Typography>
-        <Typography>Location: {event.location}</Typography>
-        <Typography>Date and Time: {new Date(event.date_time).toLocaleString()}</Typography>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <LocationOn sx={{ color: 'grey' }} />
+          <Typography variant="body1">Location: {event.location}</Typography>
+        </Stack>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Event sx={{ color: 'grey' }} />
+          <Typography variant="body1">Date and Time: {new Date(event.date_time).toLocaleString()}</Typography>
+        </Stack>
       </Card>
     </Link>
   );

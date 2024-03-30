@@ -16,6 +16,8 @@ import {
 import supabase from '../supabaseClient'; // Adjust path as necessary
 import { AppBarCustom } from './AppBar';
 import { useUser } from '../contexts/UserContext';
+import { LocationOn, Event } from '@mui/icons-material'; // Import icons for Location and Date and Time
+
 
 interface Event {
   event_id: string;
@@ -328,8 +330,16 @@ const EventDetails = () => {
                 <Typography variant="body1" gutterBottom>{description}</Typography>
                 <Grid container spacing={1}>
                   <Grid item xs={6}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <LocationOn sx={{ color: 'grey' }} />
                     <Typography variant="body2"><strong>Location:</strong> {location}</Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Event sx={{ color: 'grey' }} />
                     <Typography variant="body2"><strong>Date and Time:</strong> {new Date(dateTime).toLocaleString()}</Typography>
+                  </Stack>
+                    
+                    
                   </Grid>
                 </Grid>
                 {
