@@ -21,20 +21,6 @@ const MetroEvents: React.FC = () => {
         <EventMaker user={user}/>
       )}
       <EventList />
-      <Container maxWidth="md">
-        <Typography variant="h3" gutterBottom>
-          Welcome to Metro Events, {user.username}!
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          User ID: {user.user_id}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Email: {user.email}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Role: {types[user.user_type]}
-        </Typography>
-      </Container>
     </div>
   );
 };
