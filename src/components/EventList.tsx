@@ -39,10 +39,8 @@ const EventItem = ({ event }: { event: Event }) => {
 
   return (
     <Link to={`/event/${event.event_id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <Card sx={{ margin: 2, padding: 2 }}>
-        <Typography variant="h6">{event.title}</Typography>
-        <Typography variant="subtitle1">Organizer: {organizer}</Typography>
-        <Typography>{event.description}</Typography>
+      <Card sx={{ margin: 0.5, padding: 2 }} variant='outlined'>
+        <Typography variant="h6"><strong>{event.title}</strong></Typography>
         <Typography>Location: {event.location}</Typography>
         <Typography>Date and Time: {new Date(event.date_time).toLocaleString()}</Typography>
       </Card>

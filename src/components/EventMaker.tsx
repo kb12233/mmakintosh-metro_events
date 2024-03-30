@@ -43,7 +43,7 @@ const EventMaker = (props: any) => {
           <TextField
             label="Title"
             fullWidth
-            value={title}
+            defaultValue={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </Grid>
@@ -53,7 +53,7 @@ const EventMaker = (props: any) => {
             fullWidth
             multiline
             rows={4}
-            value={description}
+            defaultValue={description}
             onChange={(e) => setDescription(e.target.value)}
           />
         </Grid>
@@ -61,7 +61,7 @@ const EventMaker = (props: any) => {
           <TextField
             label="Location"
             fullWidth
-            value={location}
+            defaultValue={location}
             onChange={(e) => setLocation(e.target.value)}
           />
         </Grid>
@@ -70,7 +70,7 @@ const EventMaker = (props: any) => {
             label="Date and Time"
             type="datetime-local"
             fullWidth
-            value={dateTime}
+            defaultValue={dateTime}
             onChange={(e) => setDateTime(e.target.value)}
             InputLabelProps={{
               shrink: true,

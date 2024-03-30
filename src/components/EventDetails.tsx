@@ -9,6 +9,9 @@ import {
   Rating,
   TextField,
   Button,
+  Card,
+  CardContent,
+  Stack,
 } from '@mui/material';
 import supabase from '../supabaseClient'; // Adjust path as necessary
 import { AppBarCustom } from './AppBar';
@@ -32,15 +35,23 @@ const EventDetails = () => {
   const [loading, setLoading] = useState(true);
   const [event, setEvent] = useState<Event | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
-  const [organizer, setOrganizer] = useState("");
+  const [organizerUsername, setOrganizerUsername] = useState("");
   const [reviewRating, setReviewRating] = useState<number | null>(null);
   const [reviewComment, setReviewComment] = useState("");
   const [userStatus, setUserStatus] = useState<number | null>(null);
   const [reviewUsernames, setReviewUsernames] = useState<{ [userId: string]: string }>({});
   const [userReview, setUserReview] = useState<any | null>(null);
   const [reviewSubmitted, setReviewSubmitted] = useState(false); // New state variable
+  
+  const [is_editing, setIsEditing] = useState(false);
+  const [organizerId, setOrganizerID] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [dateTime, setDateTime] = useState('');
 
   useEffect(() => {
+    // Fetch event details
     const fetchEventDetails = async () => {
       const { data, error } = await supabase
         .from('event')
@@ -56,6 +67,7 @@ const EventDetails = () => {
       setLoading(false);
     };
 
+    // Fetch user status for the event
     const fetchUserStatus = async () => {
       if (user) {
         const { data, error } = await supabase
@@ -73,6 +85,7 @@ const EventDetails = () => {
       }
     };
 
+    // Fetch reviews for the event
     const fetchReviews = async () => {
       const { data, error } = await supabase
         .from('review')
@@ -109,8 +122,14 @@ const EventDetails = () => {
   }, [eventId, user]);
 
   useEffect(() => {
-    const fetchOrganizer = async () => {
+    // Fetch organizer details
+    const fetchOrganizerUsername = async () => {
       if (event) {
+        setOrganizerID(event.organizer_id);
+        setTitle(event.title);
+        setDescription(event.description);
+        setLocation(event.location);
+        setDateTime(event.date_time.toString());
         const { data, error } = await supabase
           .from('user')
           .select('username')
@@ -119,15 +138,16 @@ const EventDetails = () => {
         if (error) {
           console.error('Error fetching organizer:', error);
         } else {
-          setOrganizer(data[0]?.username || "");
+          setOrganizerUsername(data[0]?.username || "");
         }
       }
     };
 
-    fetchOrganizer();
+    fetchOrganizerUsername();
   }, [event]);
 
   useEffect(() => {
+    // Fetch user's review for the event
     const fetchUserReview = async () => {
       if (user) {
         const { data, error } = await supabase
@@ -201,6 +221,33 @@ const EventDetails = () => {
     }
   };
 
+  const handleChangeToEditMode = () => {
+    setIsEditing(true);
+  }
+
+  const handleEditEvent = async (e: any) => {
+    e.preventDefault();
+
+    const { data, error } = await supabase
+      .from('event')
+      .update({
+        title: title, 
+        description: description, 
+        location: location, 
+        date_time: new Date(dateTime)
+      })
+      .eq("event_id", eventId ) // replace 'your_event_id' with the actual event_id
+
+
+    if (error) {
+      alert('Error updating event: ' + error.message);
+    } else {
+      alert('Event updated successfully!');
+      // Reset form or further actions
+      setIsEditing(false);
+    }
+  }
+
   if (loading) return <CircularProgress />;
 
   if (!event) return <Typography variant="h5">Event not found</Typography>;
@@ -208,27 +255,103 @@ const EventDetails = () => {
   return (
     <div>
       <Box mt={4}>
-        <Paper elevation={3} sx={{ padding: 2 }}>
-          <Typography variant="h4" gutterBottom>{event.title}</Typography>
-          <Typography variant="subtitle1" gutterBottom>Organizer: {organizer}</Typography>
-          <Typography variant="body1" gutterBottom>{event.description}</Typography>
-          <Grid container spacing={1}>
-            <Grid item xs={6}>
-              <Typography variant="body2"><strong>Location:</strong> {event.location}</Typography>
-              <Typography variant="body2"><strong>Date and Time:</strong> {new Date(event.date_time).toLocaleString()}</Typography>
-            </Grid>
-          </Grid>
-        </Paper>
+        <Card variant='outlined'>
+          {
+            // Render edit form if user is editing and is the organizer or an admin
+            is_editing && (user?.user_id == organizerId || user?.user_type == 2) ?
+              <CardContent>
+                <form onSubmit={handleEditEvent}>
+                  <TextField
+                    sx={{ marginBottom: 1 }}
+                    label="Title"
+                    fullWidth
+                    defaultValue={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                  <TextField
+                    sx={{ marginBottom: 1 }}
+                    label="Description"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    defaultValue={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                  <TextField
+                    sx={{ marginBottom: 1 }}
+                    label="Location"
+                    fullWidth
+                    defaultValue={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                  <TextField
+                    sx={{ marginBottom: 1 }}
+                    label="Date and Time"
+                    type="datetime-local"
+                    fullWidth
+                    defaultValue={dateTime}
+                    onChange={(e) => setDateTime(e.target.value)}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                  <Stack direction="row" spacing={1}>
+                    <Button 
+                      variant="text"
+                      onClick={() => {setIsEditing(false)}}
+                    >
+                      Abort
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      variant="contained"
+                    >
+                      Edit Event
+                    </Button>
+                  </Stack>
+                </form>
+              </CardContent>
+            :
+              <CardContent>
+                <Typography variant="h4" gutterBottom>{title}</Typography>
+                <Typography variant="subtitle1" gutterBottom>Organizer: {organizerUsername}</Typography>
+                <Typography variant="body1" gutterBottom>{description}</Typography>
+                <Grid container spacing={1}>
+                  <Grid item xs={6}>
+                    <Typography variant="body2"><strong>Location:</strong> {location}</Typography>
+                    <Typography variant="body2"><strong>Date and Time:</strong> {new Date(dateTime).toLocaleString()}</Typography>
+                  </Grid>
+                </Grid>
+                {
+                  // Render edit button if user is the organizer or an admin
+                  (user?.user_type == 2 || user?.user_id === organizerId) ?
+                    <Button 
+                      type="submit" 
+                      variant="contained"
+                      onClick={handleChangeToEditMode}
+                    >
+                      Edit
+                    </Button>
+                    
+                    // Add the other buttons later (e.g. cancel event and view join requests)
+                  :
+                    null // We will put join event button here
+                }
+              </CardContent>
+          }
+        </Card>
         <Box mt={4}>
           <Typography variant="h5">Reviews</Typography>
           {reviews.length ? (
             reviews.map((review: any) => (
-              <Paper key={review.review_id} elevation={3} sx={{ padding: 2, marginTop: 2 }}>
-                <Typography variant="subtitle1">{reviewUsernames[review.user_id]}</Typography>
-                <Rating value={review.rating} readOnly />
-                <Typography variant="body1">{review.comment}</Typography>
-                <Typography variant="caption">{new Date(review.created_at).toLocaleString()}</Typography>
-              </Paper>
+              <Card key={review.review_id} sx={{ marginTop: 2 }}>
+                <CardContent>
+                  <Typography variant="subtitle1">{reviewUsernames[review.user_id]}</Typography>
+                  <Rating value={review.rating} readOnly />
+                  <Typography variant="body1">{review.comment}</Typography>
+                  <Typography variant="caption">{new Date(review.created_at).toLocaleString()}</Typography>
+                </CardContent>
+              </Card>
             ))
           ) : (
             <Typography variant="body1">No reviews found</Typography>
