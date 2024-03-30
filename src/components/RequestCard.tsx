@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, Typography, Button } from '@mui/material';
+import { Card, CardContent, Typography, Button, Stack } from '@mui/material';
 
 interface RequestCardProps {
   request: {
@@ -19,10 +19,10 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onAccept, onReject }
         <Typography variant="h5">{request.username}</Typography>
         <Typography variant="body2">Email: {request.email}</Typography>
         <Typography variant="body2">Requested At: {new Date(request.requested_at).toLocaleString()}</Typography>
-        <div>
-          <Button onClick={onAccept}>Accept</Button>
-          <Button onClick={onReject}>Reject</Button>
-        </div>
+        <Stack direction='row' spacing={1} sx={{ marginTop: 1 }}>
+          <Button variant='outlined' color='success' onClick={onAccept}>Accept</Button>
+          <Button variant='outlined' color='error' onClick={onReject}>Reject</Button>
+        </Stack>
       </CardContent>
     </Card>
   );
