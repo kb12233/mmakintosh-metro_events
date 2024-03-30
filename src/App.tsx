@@ -21,8 +21,9 @@ const App: React.FC = () => {
             <Route path="/register" element={<Register/>} />
             <Route path="/metro_events" element={<MetroEvents />} />
             <Route path="/organizer_requests" element={<OrganizerRequestsPage />} />
-            <Route path="/event/:eventId" element={<EventDetails />} /> 
+            <Route path="/event/:eventId" element={<EventDetails />} /> {/* Route for EventDetails */}
             <Route path="/event-requests/:eventId" element={<EventRequestsPage />} />
+            {/* Add more routes as needed */}
           </Routes>
         </UserProvider>
       </Router>

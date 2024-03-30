@@ -37,33 +37,51 @@ const EventRequestsPage: React.FC = () => {
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<Request[]>([]);
+  const [organizerId, setOrganizerId] = useState<string | null>(null); // Added state for organizer ID
 
   useEffect(() => {
     async function fetchRequests() {
       if (user && (user.user_type === 1 || user.user_type === 2)) { // Check if user is an organizer or admin
         try {
-          const { data: requestsData, error: requestError } = await supabase
-            .from('event_participant')
-            .select('user_id, requested_at')
-            .eq('event_id', eventId);
+          const { data: eventData, error: eventError } = await supabase
+            .from('event')
+            .select('organizer_id')
+            .eq('event_id', eventId)
+            .single();
 
-          if (requestError) {
-            console.error('Error fetching requests:', requestError.message);
+          if (eventError) {
+            console.error('Error fetching event organizer:', eventError.message);
             return;
           }
 
-          // Fetch user details for each request
-          const requestsWithUserDetails = await Promise.all(requestsData.map(async (request) => {
-            const userData = await fetchUser(request.user_id);
-            return {
-              ...request,
-              username: userData?.username || 'Unknown',
-              email: userData?.email || 'Unknown',
-            };
-          }));
+          // Set organizer ID
+          setOrganizerId(eventData?.organizer_id || null);
 
-          // Set the fetched data to the state
-          setRequests(requestsWithUserDetails);
+          // If user is organizer and their ID matches the organizer ID of the event
+          if ((user.user_type === 1 && user.user_id === eventData?.organizer_id) || user.user_type === 2) {
+            const { data: requestsData, error: requestError } = await supabase
+              .from('event_participant')
+              .select('user_id, requested_at')
+              .eq('event_id', eventId);
+
+            if (requestError) {
+              console.error('Error fetching requests:', requestError.message);
+              return;
+            }
+
+            // Fetch user details for each request
+            const requestsWithUserDetails = await Promise.all(requestsData.map(async (request) => {
+              const userData = await fetchUser(request.user_id);
+              return {
+                ...request,
+                username: userData?.username || 'Unknown',
+                email: userData?.email || 'Unknown',
+              };
+            }));
+
+            // Set the fetched data to the state
+            setRequests(requestsWithUserDetails);
+          }
         } catch (error: any) {
           console.error('Error fetching requests:', error.message);
         }

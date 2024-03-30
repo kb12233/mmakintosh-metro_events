@@ -60,12 +60,12 @@ const ApplyForOrganizerButton = (props: any) => {
 
   if (props.user && props.user.user_type === 0 && !hasApplied) {
     return (
-      <Button variant="contained" onClick={applyForOrganizer} disabled={isLoading}>
+      <Button variant="contained" onClick={applyForOrganizer} disabled={isLoading} disableElevation>
         {isLoading ? 'Applying...' : 'Apply for Organizer'}
       </Button>
     );
   } else if (hasApplied) {
-    return <Button variant="contained" disabled>Waiting for Approval</Button>;
+    return <Button variant="contained" disabled disableElevation>Waiting for Approval</Button>;
   } else {
     return null;
   }

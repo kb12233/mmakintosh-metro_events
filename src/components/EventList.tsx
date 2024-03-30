@@ -1,8 +1,8 @@
-// EventList.tsx
 import React, { useEffect, useState } from 'react';
 import { List, ListItem, ListItemText, CircularProgress, Card, Stack, Typography } from '@mui/material';
 import supabase from '../supabaseClient'; // Adjust path as necessary
 import { Link } from 'react-router-dom';
+import { LocationOn, Event } from '@mui/icons-material'; // Import icons for Location and Date and Time
 
 interface Event {
   event_id: string;
@@ -17,14 +17,38 @@ interface Event {
 }
 
 const EventItem = ({ event }: { event: Event }) => {
+  const [organizer, setOrganizer] = useState("");
+
+  //get name of organizer
+  useEffect(() => {
+    const fetchOrganizer = async () => {
+      const { data, error } = await supabase
+        .from('user')
+        .select('username')
+        .eq('user_id', event.organizer_id);
+      
+      if (error) {
+        console.error('Error fetching organizer:', error);
+      } else {
+        setOrganizer(data[0]?.username || "");
+      }
+    };
+
+    fetchOrganizer();
+  }, []);
+
   return (
     <Link to={`/event/${event.event_id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <Card sx={{ margin: 2, padding: 2 }}>
-        <Typography variant="h6">{event.title}</Typography>
-        <Typography variant="subtitle1">Organizer ID: {event.organizer_id}</Typography>
-        <Typography>{event.description}</Typography>
-        <Typography>Location: {event.location}</Typography>
-        <Typography>Date and Time: {new Date(event.date_time).toLocaleString()}</Typography>
+      <Card sx={{ margin: 0.5, padding: 2 }} variant='outlined'>
+        <Typography variant="h6"><strong>{event.title}</strong></Typography>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <LocationOn sx={{ color: 'grey' }} />
+          <Typography variant="body1">Location: {event.location}</Typography>
+        </Stack>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Event sx={{ color: 'grey' }} />
+          <Typography variant="body1">Date and Time: {new Date(event.date_time).toLocaleString()}</Typography>
+        </Stack>
       </Card>
     </Link>
   );
@@ -49,7 +73,14 @@ const EventList = () => {
       setLoading(false);
     };
 
+    // Fetch events initially
     fetchEvents();
+
+    // Fetch events every 10 seconds
+    const interval = setInterval(fetchEvents, 10000);
+
+    // Clear interval on component unmount
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) return <CircularProgress />;
