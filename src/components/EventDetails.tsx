@@ -221,6 +221,16 @@ const EventDetails = () => {
     }
   };
 
+  const handleAbortEdit = () => {
+    if (event) {
+      setTitle(event.title);
+      setDescription(event.description);
+      setLocation(event.location);
+      setDateTime(event.date_time.toString());
+    }
+    setIsEditing(false);
+  }
+
   const handleChangeToEditMode = () => {
     setIsEditing(true);
   }
@@ -298,7 +308,7 @@ const EventDetails = () => {
                   <Stack direction="row" spacing={1}>
                     <Button 
                       variant="text"
-                      onClick={() => {setIsEditing(false)}}
+                      onClick={handleAbortEdit}
                     >
                       Abort
                     </Button>
