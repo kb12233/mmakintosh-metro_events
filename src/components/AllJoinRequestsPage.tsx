@@ -70,29 +70,41 @@ const AllJoinRequestsPage: React.FC = () => {
   useEffect(() => {
     async function fetchAllJoinRequests() {
       try {
-        const { data, error } = await supabase
-          .from('event_participant')
-          .select('user_id, requested_at, event_id')
-          .eq('status', 0); // Assuming 0 is the status for pending requests
-  
-        if (error) {
-          console.error('Error fetching all join requests:', error.message);
+        if (!user) return; // Ensure user is logged in
+        let eventData: any;
+        if (user.user_type === 2) { // Admin
+          eventData = await supabase.from('event_participant').select('user_id, requested_at, event_id').eq('status', 0); // Assuming 0 is the status for pending requests
+        } else { // Organizer
+          eventData = await supabase.from('event').select('event_id').eq('organizer_id', user.user_id);
+        }
+
+        if (!eventData.data || eventData.data.length === 0) {
+          // If no events found for admin or organizer, set loading to false and return
+          setLoading(false);
           return;
         }
-  
-        const requestsWithUserDetails = await fetchUserDetails(data || []);
+
+        const eventIds = eventData.data.map((event: any) => event.event_id);
+
+        const joinRequests = await supabase
+          .from('event_participant')
+          .select('user_id, requested_at, event_id')
+          .in('event_id', eventIds)
+          .eq('status', 0); // Assuming 0 is the status for pending requests
+
+        const requestsWithUserDetails = await fetchUserDetails(joinRequests.data || []);
         const requestsWithEventTitle = await fetchEventTitle(requestsWithUserDetails);
-  
+
         setRequests(requestsWithEventTitle);
       } catch (error: any) {
-        console.error('Error fetching all join requests:', error.message);
+        console.error('Error fetching join requests:', error.message);
       } finally {
         setLoading(false);
       }
     }
-  
+
     fetchAllJoinRequests();
-  }, []);
+  }, [user]);
 
   const handleAcceptRequest = async (userId: string, eventId: string) => {
     try {
@@ -134,6 +146,7 @@ const AllJoinRequestsPage: React.FC = () => {
     }
   };
 
+  if (loading) return <CircularProgress />;
 
   return (
     <div>

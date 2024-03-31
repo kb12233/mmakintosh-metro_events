@@ -24,7 +24,7 @@ export const AppBarCustom = (props: any) => {
         </IconButton>
         {props.user.user_type === 2 && <OrganizerRequestsButton user={props.user} />}
         {props.user.user_type === 0 && <ApplyForOrganizerButton user={props.user} />}
-        {props.user.user_type === 2 && <AllJoinRequestsButton />}
+        {(props.user.user_type === 2 || props.user.user_type === 1) && <AllJoinRequestsButton />}
         <IconButton sx={{ color: '#ffffff' }} onClick={handleLogout}>
           <LogoutRoundedIcon />
         </IconButton>
