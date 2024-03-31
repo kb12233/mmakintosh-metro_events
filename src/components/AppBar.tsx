@@ -48,9 +48,11 @@ export const AppBarCustom = (props: any) => {
           <strong>{props.user.username}</strong> 
           <Typography variant='subtitle2'>{props.user.email}</Typography>
         </Typography>
-        <IconButton sx={{ color: '#ffffff' }} onClick={handleClick}>
-          <NotificationsRoundedIcon />
-        </IconButton>
+        {props.user.user_type !== 2 && props.user.user_type !== 1 &&( // Check if user is not an administrator
+          <IconButton sx={{ color: '#ffffff' }} onClick={handleClick}>
+            <NotificationsRoundedIcon />
+          </IconButton>
+        )}
         {props.user.user_type === 2 && <OrganizerRequestsButton user={props.user} />}
         {props.user.user_type === 0 && <ApplyForOrganizerButton user={props.user} />}
         {(props.user.user_type === 2 || props.user.user_type === 1) && <AllJoinRequestsButton />}
@@ -58,10 +60,10 @@ export const AppBarCustom = (props: any) => {
           <LogoutRoundedIcon />
         </IconButton>
       </Toolbar>
-      {/*<NotificationPopover open={Boolean(anchorEl)} onClose={handleClose} anchorEl={anchorEl} />*/}
       <NotificationPopover open={Boolean(anchorEl)} onClose={handleClose} anchorEl={anchorEl} user={props.user}>
         {renderNotifications()}
       </NotificationPopover>
     </AppBar>
   );
+  
 }
