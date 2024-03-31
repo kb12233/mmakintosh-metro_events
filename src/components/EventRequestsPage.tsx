@@ -81,7 +81,8 @@ const EventRequestsPage: React.FC = () => {
               const { data: requestsData, error: requestError } = await supabase
                 .from('event_participant')
                 .select('user_id, requested_at, event_id') // Include event_id in the selection
-                .eq('event_id', eventId);
+                .eq('event_id', eventId)
+                .eq('status', 0);
   
               if (requestError) {
                 console.error('Error fetching requests:', requestError.message);

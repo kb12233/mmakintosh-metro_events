@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import supabase from "../supabaseClient";
 import OrganizerRequestCard from './OrganizerRequestCard';
+import { Typography } from '@mui/material';
 
 interface Request {
   user_id: string;
@@ -120,7 +121,7 @@ const OrganizerRequestsPage: React.FC = () => {
 
   return (
     <div>
-      <h1>Organizer Requests</h1>
+      <Typography variant="h4" gutterBottom>Organizer Requests</Typography>
       <div>
         {requests.map((request) => (
           <OrganizerRequestCard
