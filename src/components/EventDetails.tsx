@@ -290,23 +290,72 @@ const EventDetails = () => {
   const handleEditEvent = async (e: any) => {
     e.preventDefault();
 
-    const { data, error } = await supabase
-      .from('event')
-      .update({
-        title: title, 
-        description: description, 
-        location: location, 
-        date_time: new Date(dateTime)
-      })
-      .eq("event_id", eventId ) // replace 'your_event_id' with the actual event_id
+    try {
+      // Update event details in the database
+      const { data, error } = await supabase
+        .from('event')
+        .update({
+          title: title, 
+          description: description, 
+          location: location, 
+          date_time: new Date(dateTime)
+        })
 
+        .eq("event_id", eventId );  
 
-    if (error) {
-      alert('Error updating event: ' + error.message);
-    } else {
-      alert('Event updated successfully!');
-      // Reset form or further actions
-      setIsEditing(false);
+      if (error) {
+        throw new Error(`Error updating event: ${error.message}`);
+      } else {
+        // Get the event title for the notification message
+        const { data: eventData, error: eventError } = await supabase
+        .from('event')
+        .select('title')
+        .eq('event_id', eventId)
+        .single();        
+
+        if (eventError) {
+          throw new Error(`Error fetching event details: ${eventError.message}`);
+        }
+
+        const eventTitle = eventData.title;        
+
+        // Send notification to users who joined or requested to join the event
+        const { data: participantsData, error: participantsError } = await supabase
+          .from('event_participant')
+          .select('user_id')
+          .eq('event_id', eventId);  
+
+        if (participantsError) {
+          throw new Error(`Error fetching event participants: ${participantsError.message}`);
+        }  
+
+        const notificationMessage = `The event details of "${eventTitle}" have been changed.`;  
+
+        // Insert notifications for each participant
+        const notificationInsertPromises = participantsData.map(async (participant: any) => {
+          return supabase.from('notification').insert([
+            {
+              user_id: participant.user_id,
+              event_id: eventId,
+              message: notificationMessage,
+              is_read: false,
+              created_at: new Date().toISOString(),
+            }
+          ]);
+        });  
+
+        // Execute all notification insertion promises
+        await Promise.all(notificationInsertPromises);  
+
+        // Show success message
+        alert('Event updated successfully!');        
+
+        // Reset form or further actions
+        setIsEditing(false);
+      }
+    } catch (error: any) {
+      console.error('Error updating event:', error.message);
+      alert('Failed to update event. Please try again later.');
     }
   }
 
@@ -321,22 +370,76 @@ const EventDetails = () => {
   const handleCancelEvent = async (e: any) => {
     e.preventDefault();
 
-    const { data, error } = await supabase
-      .from('event')
-      .update({
+    try{
+      const { data, error } = await supabase
+        .from('event')
+        .update({
         is_cancelled: true,
         cancel_reason: cancelReason
-      })
-      .eq("event_id", eventId ) // replace 'your_event_id' with the actual event_id
+        })
 
+        .eq("event_id", eventId ) // replace 'your_event_id' with the actual event_id
 
-    if (error) {
-      alert('Error cancelling event: ' + error.message);
-    } else {
-      alert('Event cancelled successfully!');
-      // Reset form or further actions
-      setIsCancelling(false);
-      navigate('/metro_events');
+        if (error) {
+          alert('Error cancelling event: ' + error.message);
+        } else {
+          alert('Event cancelled successfully!');
+          // Reset form or further actions
+          setIsCancelling(false);
+          ///asas
+          // Get the event title adn reason for the notification message
+          const { data: eventData, error: eventError } = await supabase
+            .from('event')
+            .select('title, cancel_reason')
+            .eq('event_id', eventId)
+            .single();            
+
+          if (eventError) {
+            throw new Error(`Error fetching event details: ${eventError.message}`);
+          }
+
+          const eventTitle = eventData.title;
+          const cancelReason = eventData.cancel_reason;
+
+          // Send notification to users who joined or requested to join the event
+          const { data: participantsData, error: participantsError } = await supabase
+            .from('event_participant')
+            .select('user_id')
+            .eq('event_id', eventId);    
+
+          if (participantsError) {
+            throw new Error(`Error fetching event participants: ${participantsError.message}`);
+          }    
+
+          const notificationMessage = `The event "${eventTitle}" has been cancelled. Message from the organizer: "${cancelReason}"`;    
+
+          // Insert notifications for each participant
+          const notificationInsertPromises = participantsData.map(async (participant: any) => {
+          return supabase.from('notification').insert([
+              {
+              user_id: participant.user_id,
+              event_id: eventId,
+              message: notificationMessage,
+              is_read: false,
+              created_at: new Date().toISOString(),
+              }
+          ]);
+          });    
+
+          // Execute all notification insertion promises
+          await Promise.all(notificationInsertPromises);    
+
+          // Show success message
+          alert('Event updated successfully!');            
+
+          // Reset form or further actions
+          setIsEditing(false);
+            ////asas
+          navigate('/metro_events');
+        }
+    } catch (error: any) {
+      console.error('Error cancelling event:', error.message);
+      alert('Failed to cancel event. Please try again later.');
     }
   }
 

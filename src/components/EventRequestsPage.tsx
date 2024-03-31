@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Typography, CircularProgress } from '@mui/material';
+import { Link, useParams } from 'react-router-dom';
+import { Typography, CircularProgress, Button } from '@mui/material';
 import supabase from '../supabaseClient'; // Adjust path as necessary
 import RequestCard from './RequestCard'; // Import your custom request card component
 import { useUser } from '../contexts/UserContext'; // Importing useUser hook from UserContext
@@ -139,6 +139,35 @@ const EventRequestsPage: React.FC = () => {
 
       // Remove the accepted request from the state
       setRequests(requests.filter(request => request.user_id !== userId));
+
+      //get event title
+      const { data: eventData, error: eventError } = await supabase
+        .from('event')
+        .select('title')
+        .eq('event_id', eventId)
+        .single();
+
+      if (eventError) {
+        throw new Error(`Error fetching event details: ${eventError.message}`);
+      }
+
+      const notificationMessage = `Your request to join the event "${eventData.title}" has been accepted.`;
+      //populate notif table
+      const { error: insertError } = await supabase
+        .from('notification')
+        .insert([
+        {
+          user_id: userId,
+          event_id: eventId,
+          message: notificationMessage,
+          is_read: false, // Assuming the notification is initially unread
+          created_at: new Date().toISOString(),
+        }
+      ]);
+
+      if (insertError) {
+        throw new Error(`Error inserting notification: ${insertError.message}`);
+      }
     } catch (error: any) {
       console.error('Error accepting request:', error.message);
     }
@@ -159,6 +188,35 @@ const EventRequestsPage: React.FC = () => {
 
       // Remove the rejected request from the state
       setRequests(requests.filter(request => request.user_id !== userId));
+
+      //get event title
+      const { data: eventData, error: eventError } = await supabase
+        .from('event')
+        .select('title')
+        .eq('event_id', eventId)
+        .single();
+
+      if (eventError) {
+        throw new Error(`Error fetching event details: ${eventError.message}`);
+      }
+
+      const notificationMessage = `Your request to join the event "${eventData.title}" has been declined.`;
+      //populate notif table
+      const { error: insertError } = await supabase
+        .from('notification')
+        .insert([
+        {
+          user_id: userId,
+          event_id: eventId,
+          message: notificationMessage,
+          is_read: false, // Assuming the notification is initially unread
+          created_at: new Date().toISOString(),
+        }
+      ]);
+
+      if (insertError) {
+        throw new Error(`Error inserting notification: ${insertError.message}`);
+      }
     } catch (error: any) {
       console.error('Error rejecting request:', error.message);
     }
@@ -184,6 +242,7 @@ const EventRequestsPage: React.FC = () => {
           <Typography variant="body1">No join requests found for this event</Typography>
         )}
       </div>
+      <Button component={Link} to="/metro_events" variant="contained" color="primary">Back to Home Page</Button> {/* Button to route back to MetroEvents */}
     </div>
   );
 };
