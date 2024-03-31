@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import supabase from "../supabaseClient";
-import OrganizerRequestCard from './OrganizerRequestCard';
+import OrganizerRequestCard from '../components/OrganizerRequestCard';
 import { Typography } from '@mui/material';
 
 interface Request {
