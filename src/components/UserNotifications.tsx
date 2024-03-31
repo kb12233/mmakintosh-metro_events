@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react';
-import { List, ListItem, ListItemText } from '@mui/material';
+import { List, ListItem, ListItemText, Checkbox, Button } from '@mui/material';
 import supabase from '../supabaseClient';
 import { useUser } from '../contexts/UserContext'; // Import the useUser hook
-import { Typography } from '@mui/material';
+
+// Define a type/interface for the structure of each notification
+interface Notification {
+  id: string; // Unique identifier for the notification
+  message: string; // Notification message
+  is_read: boolean; // Flag to indicate if the notification has been read
+}
 
 const UserNotifications = () => {
   const { user } = useUser(); // Access the user object from the UserContext
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]); // Explicitly specify the type
+  const [checkedIds, setCheckedIds] = useState<string[]>([]); // Store the IDs of checked notifications
 
   useEffect(() => {
     if (!user) return; // Exit early if user is not available
@@ -14,33 +21,17 @@ const UserNotifications = () => {
     const fetchNotifications = async () => {
       try {
         const { data, error } = await supabase
-          .from('event_participant')
-          .select('event_id, status')
-          .eq('user_id', user.user_id); // Use user.user_id from the UserContext
+          .from('notification')
+          .select('*')
+          .eq('user_id', user.user_id) // Fetch notifications for the current user
+          .eq('is_read', false); // Only fetch unread notifications
 
         if (error) {
           throw error;
         }
 
-        const eventsPromises = data.map(async (row) => {
-          const { data: eventData, error: eventError } = await supabase
-            .from('event')
-            .select('title, date_time, location')
-            .eq('event_id', row.event_id)
-            .single();
-
-          if (eventError) {
-            throw eventError;
-          }
-
-          const statusText = row.status === 0 ? 'Pending' : row.status === 1 ? 'Joined' : 'Unknown';
-
-          return { ...eventData, status: statusText };
-        });
-
-        const eventDetails = await Promise.all(eventsPromises);
-        setNotifications(eventDetails);
-      } catch (error) {
+        setNotifications(data || []); // Update state with the fetched notifications
+      } catch (error: any) {
         console.error('Error fetching notifications:', error.message);
       }
     };
@@ -48,36 +39,79 @@ const UserNotifications = () => {
     fetchNotifications();
   }, [user]);
 
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      // Update the notification in the database to mark it as read
+      await supabase
+        .from('notification')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+
+      // Update local state to reflect the change
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notification) =>
+          notification.id === notificationId ? { ...notification, is_read: true } : notification
+        )
+      );
+    } catch (error: any) {
+      console.error('Error marking notification as read:', error.message);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      // Update all checked notifications in the database to mark them as read
+      await Promise.all(checkedIds.map(async (notificationId) => {
+        await supabase
+          .from('notification')
+          .update({ is_read: true })
+          .eq('id', notificationId);
+      }));
+
+      // Update local state to mark checked notifications as read
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notification) =>
+          checkedIds.includes(notification.id) ? { ...notification, is_read: true } : notification
+        )
+      );
+
+      // Clear checkedIds
+      setCheckedIds([]);
+    } catch (error: any) {
+      console.error('Error marking checked notifications as read:', error.message);
+    }
+  };
+
+  const handleCheckboxChange = (notificationId: string) => {
+    setCheckedIds((prevCheckedIds) =>
+      prevCheckedIds.includes(notificationId)
+        ? prevCheckedIds.filter((id) => id !== notificationId)
+        : [...prevCheckedIds, notificationId]
+    );
+  };
+
   return (
-    <List>
-      {notifications.map((event, index) => {
-  // Format date
-  const eventDate = new Date(event.date_time);
-  const formattedDate = eventDate.toLocaleDateString('en-US', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-
-  // Format time
-  const formattedTime = eventDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-
-  return (
-    <ListItem key={`${event.event_id}_${index}`}>
-      <ListItemText
-        primary={<span style={{ fontWeight: 'bold', textTransform: 'uppercase' }}>{event.title}</span>}
-        secondary={`${formattedDate}, ${formattedTime} | Status: ${event.status}`}
-      />
-    </ListItem>
+    <div>
+      <Button onClick={handleMarkAllAsRead}>Mark All as Read</Button>
+      <List>
+        {notifications.map((notification, index) => (
+          <ListItem key={`${notification.id}_${index}`}>
+            <Checkbox
+              checked={checkedIds.includes(notification.id)}
+              onChange={() => {
+                handleCheckboxChange(notification.id);
+                handleMarkAsRead(notification.id); // Mark the notification as read when the checkbox is clicked
+              }}
+            />
+            <ListItemText
+              primary={<span style={{ fontWeight: 'bold' }}>{notification.message}</span>}
+              secondary={`Status: ${notification.is_read ? 'Read' : 'Unread'}`}
+            />
+          </ListItem>
+        ))}
+      </List>
+    </div>
   );
-})}
-
-    </List>
-  );
-  
 };
 
 export default UserNotifications;
