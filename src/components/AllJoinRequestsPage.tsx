@@ -121,6 +121,34 @@ const AllJoinRequestsPage: React.FC = () => {
 
       // Remove the accepted request from the state
       setRequests(requests.filter(request => request.user_id !== userId));
+      //get event title
+      const { data: eventData, error: eventError } = await supabase
+        .from('event')
+        .select('title')
+        .eq('event_id', eventId)
+        .single();
+
+      if (eventError) {
+        throw new Error(`Error fetching event details: ${eventError.message}`);
+      }
+
+      const notificationMessage = `Your request to join the event "${eventData.title}" has been accepted.`;
+      //populate notif table
+      const { error: insertError } = await supabase
+        .from('notification')
+        .insert([
+        {
+          user_id: userId,
+          event_id: eventId,
+          message: notificationMessage,
+          is_read: false, // Assuming the notification is initially unread
+          created_at: new Date().toISOString(),
+        }
+      ]);
+
+      if (insertError) {
+        throw new Error(`Error inserting notification: ${insertError.message}`);
+      }
     } catch (error: any) {
       console.error('Error accepting request:', error.message);
     }
@@ -141,6 +169,35 @@ const AllJoinRequestsPage: React.FC = () => {
 
       // Remove the rejected request from the state
       setRequests(requests.filter(request => request.user_id !== userId));
+
+      //get event title
+      const { data: eventData, error: eventError } = await supabase
+        .from('event')
+        .select('title')
+        .eq('event_id', eventId)
+        .single();
+
+      if (eventError) {
+        throw new Error(`Error fetching event details: ${eventError.message}`);
+      }
+
+      const notificationMessage = `Your request to join the event "${eventData.title}" has been declined.`;
+      //populate notif table
+      const { error: insertError } = await supabase
+        .from('notification')
+        .insert([
+        {
+          user_id: userId,
+          event_id: eventId,
+          message: notificationMessage,
+          is_read: false, // Assuming the notification is initially unread
+          created_at: new Date().toISOString(),
+        }
+      ]);
+
+      if (insertError) {
+        throw new Error(`Error inserting notification: ${insertError.message}`);
+      }
     } catch (error: any) {
       console.error('Error rejecting request:', error.message);
     }
