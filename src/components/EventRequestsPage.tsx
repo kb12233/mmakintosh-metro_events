@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Typography, CircularProgress } from '@mui/material';
@@ -13,24 +12,24 @@ interface Request {
   requested_at: string;
 }
 
-async function fetchUser(userId: string) {
-  try {
-    const { data, error } = await supabase
-      .from('user')
-      .select('username, email')
-      .eq('user_id', userId)
-      .single();
+// async function fetchUser(userId: string) {
+//   try {
+//     const { data, error } = await supabase
+//       .from('user')
+//       .select('username, email')
+//       .eq('user_id', userId)
+//       .single();
 
-    if (error) {
-      throw new Error(`Error fetching user: ${error.message}`);
-    }
+//     if (error) {
+//       throw new Error(`Error fetching user: ${error.message}`);
+//     }
 
-    return data;
-  } catch (error: any) {
-    console.error('Error fetching user:', error.message);
-    return null;
-  }
-}
+//     return data;
+//   } catch (error: any) {
+//     console.error('Error fetching user:', error.message);
+//     return null;
+//   }
+// }
 
 const EventRequestsPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -38,60 +37,92 @@ const EventRequestsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<Request[]>([]);
   const [organizerId, setOrganizerId] = useState<string | null>(null); // Added state for organizer ID
+  const [isEventIdMatching, setIsEventIdMatching] = useState<boolean>(false); // State to track if the clicked eventId matches the fetched event_id
+
+  async function fetchUser(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('user')
+        .select('username, email')
+        .eq('user_id', userId)
+        .single();
+  
+      if (error) {
+        throw new Error(`Error fetching user: ${error.message}`);
+      }
+  
+      return data;
+    } catch (error: any) {
+      console.error('Error fetching user:', error.message);
+      return null;
+    }
+  }
 
   useEffect(() => {
     async function fetchRequests() {
-      if (user && (user.user_type === 1 || user.user_type === 2)) { // Check if user is an organizer or admin
+      if (user && (user.user_type === 1 || user.user_type === 2)) {
         try {
           const { data: eventData, error: eventError } = await supabase
             .from('event')
             .select('organizer_id')
             .eq('event_id', eventId)
             .single();
-
+  
           if (eventError) {
             console.error('Error fetching event organizer:', eventError.message);
             return;
           }
-
-          // Set organizer ID
+  
           setOrganizerId(eventData?.organizer_id || null);
-
-          // If user is organizer and their ID matches the organizer ID of the event
+  
           if ((user.user_type === 1 && user.user_id === eventData?.organizer_id) || user.user_type === 2) {
-            const { data: requestsData, error: requestError } = await supabase
-              .from('event_participant')
-              .select('user_id, requested_at')
-              .eq('event_id', eventId);
-
-            if (requestError) {
-              console.error('Error fetching requests:', requestError.message);
-              return;
+            // Fetch requests only if the array of fetched requests is empty for the clicked event
+            if (requests.length === 0) {
+              const { data: requestsData, error: requestError } = await supabase
+                .from('event_participant')
+                .select('user_id, requested_at, event_id') // Include event_id in the selection
+                .eq('event_id', eventId);
+  
+              if (requestError) {
+                console.error('Error fetching requests:', requestError.message);
+                return;
+              }
+  
+              //from the requests data array, we fetch requests that match the eventId clicked
+              const requestsForEvent = requestsData.filter(request => eventId === request.event_id);
+  
+              //we then fetch the details of the users who sent the requests
+              const requestsWithUserDetails = await Promise.all(requestsForEvent.map(async (request) => {
+                const userData = await fetchUser(request.user_id);
+                return {
+                  ...request,
+                  username: userData?.username || 'Unknown',
+                  email: userData?.email || 'Unknown',
+                };
+              }));
+  
+              setRequests(requestsWithUserDetails);
+  
+              // Check if any fetched request has a different event ID than the clicked event
+              const hasMismatchedEventId = requestsForEvent.some(request => eventId !== request.event_id);
+              setIsEventIdMatching(!hasMismatchedEventId);
             }
-
-            // Fetch user details for each request
-            const requestsWithUserDetails = await Promise.all(requestsData.map(async (request) => {
-              const userData = await fetchUser(request.user_id);
-              return {
-                ...request,
-                username: userData?.username || 'Unknown',
-                email: userData?.email || 'Unknown',
-              };
-            }));
-
-            // Set the fetched data to the state
-            setRequests(requestsWithUserDetails);
+          } else {
+            setRequests([]);
+            setIsEventIdMatching(false);
           }
         } catch (error: any) {
           console.error('Error fetching requests:', error.message);
         }
       }
     }
-
+  
     fetchRequests();
     setLoading(false);
   }, [eventId, user]);
-
+  
+  
+  
   const handleAcceptRequest = async (userId: string) => {
     try {
       // Update user status to accepted for this event in the database
@@ -137,6 +168,7 @@ const EventRequestsPage: React.FC = () => {
   return (
     <div>
       <Typography variant="h4" gutterBottom>Event Join Requests</Typography>
+      {!isEventIdMatching && <Typography variant="body1">No event found with the provided ID</Typography>}
       <div>
         {requests.length ? (
           requests.map((request) => (
