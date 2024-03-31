@@ -6,10 +6,10 @@ import Login from './pages/Login'; // Adjust paths as needed
 import Register from './pages/Register';
 import MetroEvents from './pages/Metro_Events';
 import { UserProvider } from './contexts/UserContext'; // Adjust the import path as necessary
-import OrganizerRequestsPage from './components/OrganizerRequestsPage';
-import EventDetails from './components/EventDetails'; // Import the EventDetails component
-import EventRequestsPage from './components/EventRequestsPage';
-import AllJoinRequestsPage from './components/AllJoinRequestsPage';
+import OrganizerRequestsPage from './pages/OrganizerRequestsPage';
+import EventDetails from './pages/EventDetails'; // Import the EventDetails component
+import EventRequestsPage from './pages/EventRequestsPage';
+import AllJoinRequestsPage from './pages/AllJoinRequestsPage';
 
 const App: React.FC = () => {
   return (

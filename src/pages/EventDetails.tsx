@@ -14,7 +14,7 @@ import {
   Stack,
 } from '@mui/material';
 import supabase from '../supabaseClient'; // Adjust path as necessary
-import { AppBarCustom } from './AppBar';
+import { AppBarCustom } from '../components/AppBar';
 import { useUser } from '../contexts/UserContext';
 import { LocationOn, Event } from '@mui/icons-material'; // Import icons for Location and Date and Time
 

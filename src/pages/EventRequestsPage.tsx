@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Typography, CircularProgress, Button } from '@mui/material';
 import supabase from '../supabaseClient'; // Adjust path as necessary
-import RequestCard from './RequestCard'; // Import your custom request card component
+import RequestCard from '../components/RequestCard'; // Import your custom request card component
 import { useUser } from '../contexts/UserContext'; // Importing useUser hook from UserContext
 
 interface Request {

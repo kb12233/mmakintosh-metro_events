@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Typography, CircularProgress } from '@mui/material';
 import supabase from '../supabaseClient'; // Adjust path as necessary
 import { useUser } from '../contexts/UserContext';
-import AllJoinRequestCard from './AllJoinRequestCard'; // Import AllJoinRequestCard component
+import AllJoinRequestCard from '../components/AllJoinRequestCard'; // Import AllJoinRequestCard component
 
 interface Request {
   user_id: string;
