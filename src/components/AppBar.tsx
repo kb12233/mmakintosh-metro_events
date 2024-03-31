@@ -44,8 +44,9 @@ export const AppBarCustom = (props: any) => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          {props.user.username} | {props.user.email}
+        <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
+          <strong>{props.user.username}</strong> 
+          <Typography variant='subtitle2'>{props.user.email}</Typography>
         </Typography>
         <IconButton sx={{ color: '#ffffff' }} onClick={handleClick}>
           <NotificationsRoundedIcon />

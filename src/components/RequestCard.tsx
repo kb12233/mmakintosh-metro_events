@@ -14,7 +14,7 @@ interface RequestCardProps {
 
 const RequestCard: React.FC<RequestCardProps> = ({ request, onAccept, onReject }) => {
   return (
-    <Card>
+    <Card variant='outlined'>
       <CardContent>
         <Typography variant="h5">{request.username}</Typography>
         <Typography variant="body2">Email: {request.email}</Typography>
